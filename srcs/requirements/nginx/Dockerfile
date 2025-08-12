@@ -12,3 +12,5 @@ RUN apk update && \
 EXPOSE 443
 
 COPY conf/nginx.conf /etc/nginx/nginx.conf
+
+CMD ["nginx", "-g", "daemon off;"]
