@@ -2,10 +2,12 @@ FROM alpine:3.22.0
 
 RUN apk update && \
     apk add --no-cache mariadb mariadb-client && \
-    mkdir -p /var/log/mysql && \
     mariadb-install-db --user=mysql --datadir=/var/lib/mysql
 
 COPY conf/my.cnf /etc/my.cnf
+COPY tools/entrypoint.sh /entrypoint.sh
 
-CMD ["mysqld", "--user=mysql"]
+RUN chmod +x /entrypoint.sh
+
+CMD ["/entrypoint.sh", "mariadbd", "--user=mysql"]
 
