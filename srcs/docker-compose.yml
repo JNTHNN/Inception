@@ -1,6 +1,7 @@
 services:
+
   mariadb:
-    build: /home/jgasparo/Desktop/Inception/srcs/requirements/mariadb
+    build: ./requirements/mariadb
     image: mariadb
     environment:
       MYSQL_ROOT_PASSWORD: rootpass
@@ -8,10 +9,11 @@ services:
       MYSQL_USER: wpuser
       MYSQL_PASSWORD: wppass
     volumes:
-      - db_data:/home/jgasparo/data/lib/mysql
+      - db_data:/var/lib/mysql
 
   wordpress:
     build: ./requirements/wordpress
+    image: wordpress
     environment:
       WORDPRESS_DB_HOST: mariadb:3306
       WORDPRESS_DB_USER: wpuser
@@ -23,6 +25,16 @@ services:
       - "9000:9000"
     depends_on:
       - mariadb
+
+  nginx:
+    build: ./requirements/nginx
+    image: nginx
+    volumes:
+      - wp_data:/home/jgasparo/data/www/wordpress
+    ports:
+      - "443:443"
+    depends_on:
+      - wordpress
 
 volumes:
   db_data:

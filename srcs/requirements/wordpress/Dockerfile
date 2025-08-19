@@ -11,4 +11,4 @@ RUN curl -o wordpress.tar.gz https://wordpress.org/latest.tar.gz && \
 
 EXPOSE 9000
 
-CMD ["php-fpm83", "-F"]
+CMD ["php-fpm83", "-F", "-y", "/etc/php83/php-fpm.conf"]
