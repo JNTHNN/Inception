@@ -3,11 +3,15 @@ FROM alpine:3.22.0
 RUN apk update && \
     apk add --no-cache php php-fpm php-mysqli php-json php-curl php-xml php-mbstring php-gd php-session php-opcache php-dom php-zip php-tokenizer php-ctype curl
 
+RUN sed -i 's|listen = 127.0.0.1:9000|listen = 0.0.0.0:9000|' /etc/php83/php-fpm.d/www.conf
+
 WORKDIR /home/jgasparo/data/www/wordpress
 
 RUN curl -o wordpress.tar.gz https://wordpress.org/latest.tar.gz && \
     tar -xzf wordpress.tar.gz --strip-components=1 && \
     rm wordpress.tar.gz
+
+COPY conf/wp-config.php /home/jgasparo/data/www/wordpress/wp-config.php
 
 EXPOSE 9000
 
