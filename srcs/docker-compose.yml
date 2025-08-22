@@ -8,7 +8,7 @@ services:
       MYSQL_USER: ${MYSQL_USER}
       MYSQL_PASSWORD: ${MYSQL_PWD}
     volumes:
-      - db_data:/var/lib/mysql
+      - /home/jgasparo/data/mariadb:/var/lib/mysql
       - ./requirements/mariadb/tools/init.sql:/docker-entrypoint-initdb.d/init.sql
     expose:
       - "3306"
@@ -36,7 +36,7 @@ services:
       WORDPRESS_USER_PASSWORD: ${WP_USER_PWD}
       
     volumes:
-      - wp_data:/home/jgasparo/data/www/wordpress
+      - /home/jgasparo/data/www/wordpress:/home/jgasparo/data/www/wordpress
     expose:
       - "9000"
     depends_on:
@@ -45,12 +45,8 @@ services:
   nginx:
     build: ./requirements/nginx
     volumes:
-      - wp_data:/home/jgasparo/data/www/wordpress
+      - /home/jgasparo/data/www/wordpress:/home/jgasparo/data/www/wordpress
     ports:
       - "443:443"
     depends_on:
       - wordpress
-
-volumes:
-  db_data:
-  wp_data:
