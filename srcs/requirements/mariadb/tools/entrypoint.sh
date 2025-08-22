@@ -7,7 +7,6 @@ chown -R mysql:mysql /var/log/mysql /run/mysqld /var/lib/mysql
 chmod 660 /var/log/mysql/*.log
 chmod 770 /var/log/mysql /run/mysqld
 
-
 # Démarre MariaDB en arrière-plan
 mariadbd --user=mysql --datadir=/var/lib/mysql &
 pid="$!"
