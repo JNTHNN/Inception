@@ -1,7 +1,7 @@
 FROM alpine:3.22.0
 
 RUN apk update && \
-    apk add --no-cache php php-fpm php-mysqli php-json php-curl php-xml php-mbstring php-gd php-session php-opcache php-dom php-zip php-tokenizer php-ctype php-phar curl && \
+    apk add --no-cache php php-fpm php-mysqli php-json php-curl php-xml php-mbstring php-gd php-session php-opcache php-dom php-zip php-tokenizer php-ctype php-phar curl mariadb-client && \
     sed -i 's|listen = 127.0.0.1:9000|listen = 0.0.0.0:9000|' /etc/php83/php-fpm.d/www.conf && \
     echo "clear_env = no" >> /etc/php83/php-fpm.d/www.conf && \
     mkdir -p /home/jgasparo/data/www/wordpress && \
