@@ -47,8 +47,12 @@ for f in /docker-entrypoint-initdb.d/*.sql; do
   [ -f "$f" ] && echo "Running $f" && mariadb < "$f"
 done
 
-# Arrête MariaDB temporaire
 kill "$pid"
 wait "$pid"
 
-exec "$@"
+# Si aucun argument, démarre MariaDB en foreground
+if [ $# -eq 0 ]; then
+  exec mariadbd --user=mysql --datadir=/var/lib/mysql
+else
+  exec "$@"
+fi

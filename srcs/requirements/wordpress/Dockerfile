@@ -11,7 +11,6 @@ RUN apk update && \
 
 WORKDIR /home/jgasparo/data/www/wordpress
 
-COPY conf/wp-config.php /home/jgasparo/data/www/wordpress/wp-config.php
 COPY tools/setup.sh /setup.sh
 
 RUN chmod +x /setup.sh

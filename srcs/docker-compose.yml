@@ -1,6 +1,7 @@
 services:
 
   mariadb:
+    container_name: mariadb
     build: ./requirements/mariadb
     restart: always
     environment:
@@ -17,7 +18,21 @@ services:
       - db_root_password
       - db_password
 
+  nginx:
+    container_name: nginx
+    build: ./requirements/nginx
+    restart: always
+    volumes:
+      - /home/jgasparo/data/wordpress:/home/jgasparo/data/www/wordpress
+    ports:
+      - "443:443"
+    depends_on:
+      - wordpress
+    networks:
+      - inception
+
   wordpress:
+    container_name: wordpress
     build: ./requirements/wordpress
     restart: always
     environment:
@@ -28,6 +43,8 @@ services:
       WORDPRESS_ADMIN_EMAIL: ${WP_ADMIN_EMAIL}
       WORDPRESS_TITLE: ${WP_TITLE}
       WORDPRESS_DOMAIN_NAME: ${DOMAIN_NAME}
+      WORDPRESS_USER_NAME: ${WP_USER_NAME}
+      WORDPRESS_USER_EMAIL: ${WP_USER_EMAIL}
       
     volumes:
       - /home/jgasparo/data/wordpress:/home/jgasparo/data/www/wordpress
@@ -41,26 +58,7 @@ services:
       - db_password
       - wp_admin_password
       - wp_user_password
-      - wp_auth_key
-      - wp_secure_auth_key
-      - wp_logged_in_key
-      - wp_nonce_key
-      - wp_auth_salt
-      - wp_secure_auth_salt
-      - wp_logged_in_salt
-      - wp_nonce_salt
 
-  nginx:
-    build: ./requirements/nginx
-    restart: always
-    volumes:
-      - /home/jgasparo/data/wordpress:/home/jgasparo/data/www/wordpress
-    ports:
-      - "443:443"
-    depends_on:
-      - wordpress
-    networks:
-      - inception
 
 networks:
   inception:
@@ -75,19 +73,3 @@ secrets:
     file: ../secrets/wp_admin_password.txt
   wp_user_password:
     file: ../secrets/wp_user_password.txt
-  wp_auth_key:
-    file: ../secrets/wp_auth_key.txt
-  wp_secure_auth_key:
-    file: ../secrets/wp_secure_auth_key.txt
-  wp_logged_in_key:
-    file: ../secrets/wp_logged_in_key.txt
-  wp_nonce_key:
-    file: ../secrets/wp_nonce_key.txt
-  wp_auth_salt:
-    file: ../secrets/wp_auth_salt.txt
-  wp_secure_auth_salt:
-    file: ../secrets/wp_secure_auth_salt.txt
-  wp_logged_in_salt:
-    file: ../secrets/wp_logged_in_salt.txt
-  wp_nonce_salt:
-    file: ../secrets/wp_nonce_salt.txt

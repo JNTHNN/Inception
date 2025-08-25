@@ -1,7 +1,7 @@
 #!/bin/sh
 set -e
 
-# Lire les secrets depuis les fichiers si disponibles
+# Lire les secrets depuis les fichiers
 if [ -f /run/secrets/db_password ]; then
   export WORDPRESS_DB_PASSWORD=$(cat /run/secrets/db_password)
 fi
@@ -11,30 +11,8 @@ fi
 if [ -f /run/secrets/wp_user_password ]; then
   export WORDPRESS_USER_PASSWORD=$(cat /run/secrets/wp_user_password)
 fi
-if [ -f /run/secrets/wp_auth_key ]; then
-  export WORDPRESS_AUTH_KEY=$(cat /run/secrets/wp_auth_key)
-fi
-if [ -f /run/secrets/wp_secure_auth_key ]; then
-  export WORDPRESS_SECURE_AUTH_KEY=$(cat /run/secrets/wp_secure_auth_key)
-fi
-if [ -f /run/secrets/wp_logged_in_key ]; then
-  export WORDPRESS_LOGGED_IN_KEY=$(cat /run/secrets/wp_logged_in_key)
-fi
-if [ -f /run/secrets/wp_nonce_key ]; then
-  export WORDPRESS_NONCE_KEY=$(cat /run/secrets/wp_nonce_key)
-fi
-if [ -f /run/secrets/wp_auth_salt ]; then
-  export WORDPRESS_AUTH_SALT=$(cat /run/secrets/wp_auth_salt)
-fi
-if [ -f /run/secrets/wp_secure_auth_salt ]; then
-  export WORDPRESS_SECURE_AUTH_SALT=$(cat /run/secrets/wp_secure_auth_salt)
-fi
-if [ -f /run/secrets/wp_logged_in_salt ]; then
-  export WORDPRESS_LOGGED_IN_SALT=$(cat /run/secrets/wp_logged_in_salt)
-fi
-if [ -f /run/secrets/wp_nonce_salt ]; then
-  export WORDPRESS_NONCE_SALT=$(cat /run/secrets/wp_nonce_salt)
-fi
+
+
 
 # Attendre que la DB soit prête
 until mariadb -h "$WORDPRESS_DB_HOST" -u "$WORDPRESS_DB_USER" -p"$WORDPRESS_DB_PASSWORD" "$WORDPRESS_DB_NAME" -e "SELECT 1;" 2>/dev/null; do
@@ -42,8 +20,9 @@ until mariadb -h "$WORDPRESS_DB_HOST" -u "$WORDPRESS_DB_USER" -p"$WORDPRESS_DB_P
   sleep 2
 done
 
-# Installer WP-CLI si besoin
+# Installer WP-CLI
 if ! command -v wp >/dev/null; then
+  echo "Install WP-CLI..."
   curl -O https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli.phar
   chmod +x wp-cli.phar
   mv wp-cli.phar /usr/local/bin/wp
@@ -51,8 +30,28 @@ fi
 
 cd /home/jgasparo/data/www/wordpress
 
-# Installer WordPress si ce n'est pas déjà fait
+# Télécharger WordPress
+if [ ! -f wp-settings.php ]; then
+  echo "Téléchargement de WordPress..."
+  curl -o wordpress.tar.gz https://wordpress.org/latest.tar.gz
+  tar -xzf wordpress.tar.gz --strip-components=1
+  rm wordpress.tar.gz
+fi
+
+# Générer wp-config.php
+if [ ! -f wp-config.php ]; then
+  echo "Génération de wp-config.php..."
+  wp config create \
+    --dbname="$WORDPRESS_DB_NAME" \
+    --dbuser="$WORDPRESS_DB_USER" \
+    --dbpass="$WORDPRESS_DB_PASSWORD" \
+    --dbhost="$WORDPRESS_DB_HOST" \
+    --allow-root
+fi
+
+# Installer WordPress
 if ! wp core is-installed --allow-root; then
+  echo "Installation WordPress..."
   wp core install \
     --url="https://$WORDPRESS_DOMAIN_NAME" \
     --title="$WORDPRESS_TITLE" \
@@ -62,7 +61,8 @@ if ! wp core is-installed --allow-root; then
     --skip-email \
     --allow-root
 
-  wp user create correcteur correcteur@student.s19.be \
+  echo "Creation User WordPress..."
+  wp user create "$WORDPRESS_USER_NAME" "$WORDPRESS_USER_EMAIL" \
     --role=contributor \
     --user_pass="$WORDPRESS_USER_PASSWORD" \
     --allow-root
