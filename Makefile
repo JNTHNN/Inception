@@ -1,9 +1,14 @@
 COMPOSE = docker-compose -f srcs/docker-compose.yml
 
-build:
+init:
+	@echo "Initialisation des dossiers de données..."
+	@chmod +x init.sh
+	@./init.sh
+
+build: init
 	$(COMPOSE) build --no-cache
 
-up:
+up: init
 	$(COMPOSE) up -d
 
 down:
@@ -34,4 +39,4 @@ mariadb:
 	$(COMPOSE) build --no-cache mariadb
 	$(COMPOSE) up -d mariadb
 
-.PHONY: build up down clean logs stop restart nginx wordpress mariadb
+.PHONY: init build up down clean logs stop restart nginx wordpress mariadb

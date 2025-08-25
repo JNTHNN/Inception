@@ -2,51 +2,92 @@ services:
 
   mariadb:
     build: ./requirements/mariadb
+    restart: always
     environment:
-      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PWD}
       MYSQL_DATABASE: ${MYSQL_DB}
       MYSQL_USER: ${MYSQL_USER}
-      MYSQL_PASSWORD: ${MYSQL_PWD}
     volumes:
       - /home/jgasparo/data/mariadb:/var/lib/mysql
       - ./requirements/mariadb/tools/init.sql:/docker-entrypoint-initdb.d/init.sql
     expose:
       - "3306"
+    networks:
+      - inception
+    secrets:
+      - db_root_password
+      - db_password
 
   wordpress:
     build: ./requirements/wordpress
+    restart: always
     environment:
       WORDPRESS_DB_HOST: ${WP_DB_HOST}
       WORDPRESS_DB_USER: ${WP_DB_USER}
-      WORDPRESS_DB_PASSWORD: ${WP_DB_PWD}
       WORDPRESS_DB_NAME: ${WP_DB_NAME}
       WORDPRESS_ADMIN_USER: ${WP_ADMIN_USER}
-      WORDPRESS_ADMIN_PASSWORD: ${WP_ADMIN_PWD}
       WORDPRESS_ADMIN_EMAIL: ${WP_ADMIN_EMAIL}
       WORDPRESS_TITLE: ${WP_TITLE}
       WORDPRESS_DOMAIN_NAME: ${DOMAIN_NAME}
-      WORDPRESS_AUTH_KEY: ${WP_AUTH_KEY}
-      WORDPRESS_SECURE_AUTH_KEY: ${WP_SECURE_AUTH_KEY}
-      WORDPRESS_LOGGED_IN_KEY: ${WP_LOGGED_IN_KEY}
-      WORDPRESS_NONCE_KEY: ${WP_NONCE_KEY}
-      WORDPRESS_AUTH_SALT: ${WP_AUTH_SALT}
-      WORDPRESS_SECURE_AUTH_SALT: ${WP_SECURE_AUTH_SALT}
-      WORDPRESS_LOGGED_IN_SALT: ${WP_LOGGED_IN_SALT}
-      WORDPRESS_NONCE_SALT: ${WP_NONCE_SALT}
-      WORDPRESS_USER_PASSWORD: ${WP_USER_PWD}
       
     volumes:
-      - /home/jgasparo/data/www/wordpress:/home/jgasparo/data/www/wordpress
+      - /home/jgasparo/data/wordpress:/home/jgasparo/data/www/wordpress
     expose:
       - "9000"
     depends_on:
       - mariadb
+    networks:
+      - inception
+    secrets:
+      - db_password
+      - wp_admin_password
+      - wp_user_password
+      - wp_auth_key
+      - wp_secure_auth_key
+      - wp_logged_in_key
+      - wp_nonce_key
+      - wp_auth_salt
+      - wp_secure_auth_salt
+      - wp_logged_in_salt
+      - wp_nonce_salt
 
   nginx:
     build: ./requirements/nginx
+    restart: always
     volumes:
-      - /home/jgasparo/data/www/wordpress:/home/jgasparo/data/www/wordpress
+      - /home/jgasparo/data/wordpress:/home/jgasparo/data/www/wordpress
     ports:
       - "443:443"
     depends_on:
       - wordpress
+    networks:
+      - inception
+
+networks:
+  inception:
+    driver: bridge
+
+secrets:
+  db_password:
+    file: ../secrets/db_password.txt
+  db_root_password:
+    file: ../secrets/db_root_password.txt
+  wp_admin_password:
+    file: ../secrets/wp_admin_password.txt
+  wp_user_password:
+    file: ../secrets/wp_user_password.txt
+  wp_auth_key:
+    file: ../secrets/wp_auth_key.txt
+  wp_secure_auth_key:
+    file: ../secrets/wp_secure_auth_key.txt
+  wp_logged_in_key:
+    file: ../secrets/wp_logged_in_key.txt
+  wp_nonce_key:
+    file: ../secrets/wp_nonce_key.txt
+  wp_auth_salt:
+    file: ../secrets/wp_auth_salt.txt
+  wp_secure_auth_salt:
+    file: ../secrets/wp_secure_auth_salt.txt
+  wp_logged_in_salt:
+    file: ../secrets/wp_logged_in_salt.txt
+  wp_nonce_salt:
+    file: ../secrets/wp_nonce_salt.txt
