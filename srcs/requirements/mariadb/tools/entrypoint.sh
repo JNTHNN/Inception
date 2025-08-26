@@ -14,6 +14,7 @@ mkdir -p /run/mysqld
 chown -R mysql:mysql /run/mysqld
 chmod 770 /run/mysqld
 
+
 # Configuration de la base de données
 if [ ! -d "/var/lib/mysql/mysql" ]; then
   echo "Initialisation de la db MariaDB..."
@@ -28,17 +29,33 @@ until mariadb-admin ping --silent; do
   sleep 1
 done
 
-# Création du fichier SQL pour Wordpress
-cat > /tmp/init_dynamic.sql <<EOF
-CREATE DATABASE IF NOT EXISTS ${MYSQL_DATABASE};
-CREATE USER IF NOT EXISTS '${MYSQL_USER}'@'%' IDENTIFIED BY '${MYSQL_PASSWORD}';
-GRANT ALL PRIVILEGES ON ${MYSQL_DATABASE}.* TO '${MYSQL_USER}'@'%';
+# Forcer l'usage du mot de passe pour root
+cat > /tmp/force_root_password.sql <<EOF
+ALTER USER 'root'@'localhost' IDENTIFIED BY '${MYSQL_ROOT_PASSWORD}';
+FLUSH PRIVILEGES;
+EOF
+mariadb -u root -p"${MYSQL_ROOT_PASSWORD}" < /tmp/force_root_password.sql
+
+# Définir le mot de passe root explicitement
+cat > /tmp/set_root_password.sql <<EOF
+ALTER USER 'root'@'localhost' IDENTIFIED BY '${MYSQL_ROOT_PASSWORD}';
 FLUSH PRIVILEGES;
 EOF
 
-# Exécution du script SQL dynamique
+mariadb -u root -p"${MYSQL_ROOT_PASSWORD}" < /tmp/set_root_password.sql
+
+# Création + exec du fichier SQL pour Wordpress
+cat > /tmp/init_dynamic.sql <<EOF
+CREATE DATABASE IF NOT EXISTS ${MYSQL_DATABASE};
+CREATE USER IF NOT EXISTS '${MYSQL_USER}'@'%' IDENTIFIED BY '${MYSQL_PASSWORD}';
+CREATE USER IF NOT EXISTS '${MYSQL_USER}'@'localhost' IDENTIFIED BY '${MYSQL_PASSWORD}';
+GRANT ALL PRIVILEGES ON ${MYSQL_DATABASE}.* TO '${MYSQL_USER}'@'%';
+GRANT ALL PRIVILEGES ON ${MYSQL_DATABASE}.* TO '${MYSQL_USER}'@'localhost';
+FLUSH PRIVILEGES;
+EOF
+
 echo "Execution du script SQL..."
-mariadb < /tmp/init_dynamic.sql
+mariadb -u root -p"${MYSQL_ROOT_PASSWORD}" < /tmp/init_dynamic.sql
 
 kill "$pid"
 wait "$pid"
