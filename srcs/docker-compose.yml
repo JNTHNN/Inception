@@ -8,7 +8,7 @@ services:
       MYSQL_DATABASE: ${MYSQL_DB}
       MYSQL_USER: ${MYSQL_USER}
     volumes:
-      - /home/jgasparo/data/mariadb:/var/lib/mysql
+      - mariadb:/var/lib/mysql
     expose:
       - "3306"
     networks:
@@ -22,7 +22,7 @@ services:
     build: ./requirements/nginx
     restart: always
     volumes:
-      - /home/jgasparo/data/wordpress:/home/jgasparo/data/www/wordpress
+      - wordpress:/home/jgasparo/data/www/wordpress
     ports:
       - "443:443"
     depends_on:
@@ -44,7 +44,7 @@ services:
       WORDPRESS_USER_NAME: ${WP_USER_NAME}
       WORDPRESS_USER_EMAIL: ${WP_USER_EMAIL}     
     volumes:
-      - /home/jgasparo/data/wordpress:/home/jgasparo/data/www/wordpress
+      - wordpress:/home/jgasparo/data/www/wordpress
     expose:
       - "9000"
     depends_on:
@@ -73,3 +73,17 @@ secrets:
     file: ../secrets/wp_admin_password.txt
   wp_user_password:
     file: ../secrets/wp_user_password.txt
+
+volumes:
+  wordpress:
+    driver: local
+    driver_opts:
+      type: none
+      device: /home/jgasparo/data/wordpress
+      o: bind
+  mariadb:
+    driver: local
+    driver_opts:
+      type: none
+      device: /home/jgasparo/data/mariadb
+      o: bind

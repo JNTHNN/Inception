@@ -1,4 +1,4 @@
-FROM alpine:3.22.0
+FROM alpine:3.20
 
 RUN apk update && \
     apk add --no-cache php php-fpm php-mysqli php-json php-curl php-xml php-mbstring php-gd php-session php-opcache php-dom php-zip php-tokenizer php-ctype php-phar curl mariadb-client && \
